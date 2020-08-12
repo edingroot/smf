@@ -67,28 +67,38 @@ func processUPTopology(upTopology *factory.UserPlaneInformation) {
 			upNode.ANIP = net.ParseIP(node.ANIP)
 			anPool[name] = upNode
 		case UPNODE_UPF:
-			//ParseIp() always return 16 bytes
-			//so we can't use the length of return ip to seperate IPv4 and IPv6
-			//This is just a work around
-			var ip net.IP
+			// net.ParseIp() always return 16 bytes, so we can't determine IPv4 or IPv6 by
+			// the length of the returning IP. This is just a work around.
+			var cpIP, upIP, anIP net.IP
+
 			if net.ParseIP(node.NodeID).To4() == nil {
-
-				ip = net.ParseIP(node.NodeID)
+				cpIP = net.ParseIP(node.NodeID)
 			} else {
-
-				ip = net.ParseIP(node.NodeID).To4()
+				cpIP = net.ParseIP(node.NodeID).To4()
 			}
 
-			switch len(ip) {
+			if net.ParseIP(node.UPResourceIP).To4() == nil {
+				upIP = net.ParseIP(node.UPResourceIP)
+			} else {
+				upIP = net.ParseIP(node.UPResourceIP).To4()
+			}
+
+			if net.ParseIP(node.ANIP).To4() == nil {
+				anIP = net.ParseIP(node.ANIP)
+			} else {
+				anIP = net.ParseIP(node.ANIP).To4()
+			}
+
+			switch len(cpIP) {
 			case net.IPv4len:
 				upNode.NodeID = pfcpType.NodeID{
 					NodeIdType:  pfcpType.NodeIdTypeIpv4Address,
-					NodeIdValue: ip,
+					NodeIdValue: cpIP,
 				}
 			case net.IPv6len:
 				upNode.NodeID = pfcpType.NodeID{
 					NodeIdType:  pfcpType.NodeIdTypeIpv6Address,
-					NodeIdValue: ip,
+					NodeIdValue: cpIP,
 				}
 			default:
 				upNode.NodeID = pfcpType.NodeID{
@@ -97,9 +107,13 @@ func processUPTopology(upTopology *factory.UserPlaneInformation) {
 				}
 			}
 
+			upNode.UPResourceIP = upIP
+			upNode.ANIP = anIP
+			upNode.Dnn = node.Dnn
 			upfPool[name] = upNode
+
 		default:
-			logger.InitLog.Warningf("invalid UPNodeType: %s\n", upNode.Type)
+			logger.InitLog.Warningf("Invalid UPNodeType: %s\n", upNode.Type)
 		}
 
 		nodePool[name] = upNode
@@ -119,7 +133,7 @@ func processUPTopology(upTopology *factory.UserPlaneInformation) {
 		nodeB.Links = append(nodeB.Links, nodeA)
 	}
 
-	//Initialize each UPF
+	// Initialize each UPF
 	for _, upfNode := range upfPool {
 		upfNode.UPF = NewUPF(&upfNode.NodeID)
 	}

@@ -162,7 +162,7 @@ func (smf *SMF) Start() {
 
 	for _, upf := range context.SMF_Self().UserPlaneInformation.UPFs {
 		addr := new(net.UDPAddr)
-		addr.IP = net.IP(upf.NodeID.NodeIdValue)
+		addr.IP = upf.NodeID.NodeIdValue
 
 		addr.Port = pfcpUdp.PFCP_PORT
 
