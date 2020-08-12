@@ -99,7 +99,7 @@ type UserPlaneInformation struct {
 type UPNode struct {
 	Type         string `yaml:"type"`
 	NodeID       string `yaml:"node_id"`
-	UPResourceIP string `yaml:"node"`
+	UPResourceIP string `yaml:"up_resource_ip"`
 	ANIP         string `yaml:"an_ip"`
 	Dnn          string `yaml:"dnn"`
 }
